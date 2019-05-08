@@ -1,7 +1,8 @@
 #ifndef Minisat_Cache_h
 #define Minisat_Cache_h
 
-#include <vector>
+#include <deque>
+#include <set>
 #include <algorithm>
 #include <iostream>
 #include "SolverTypes.h"
@@ -9,7 +10,8 @@
 namespace Minisat {
         class Cache {
         private:
-                std::vector<Var> _queue;
+                std::deque<Var> _queue;
+                std::set<Var> _set;
                 size_t _depth;
                 int _width;
                 size_t _cache_hit;
@@ -17,9 +19,12 @@ namespace Minisat {
 
                 void add_single(Var v)
                 {
-                        if (_queue.size() >= _depth - 1)
+                        if (_queue.size() >= _depth - 1) {
+                                _set.erase(_queue.back());
                                 _queue.pop_back();
-                        _queue.insert(std::begin(_queue), v);
+                        }
+                        _queue.push_front(v);
+                        _set.insert(v);
                 }
 
                 void add(Var v)
@@ -30,14 +35,14 @@ namespace Minisat {
 
                 bool is_hit(Var v)
                 {
-                        auto elm = std::find(std::begin(_queue),
-                                             std::end(_queue), v);
-                        return elm != std::end(_queue);
+                        auto elm = _set.find(v);
+                        return elm != std::end(_set);
                 }
 
         public:
                 Cache(size_t depth, size_t width):
-                        _queue(std::vector<Var>()),
+                        _queue(std::deque<Var>()),
+                        _set(std::set<Var>()),
                         _depth(depth),
                         _width(width),
                         _cache_hit(0) {}
@@ -58,7 +63,9 @@ namespace Minisat {
 
                 void get_results()
                 {
-                        std::cout << "| " << _depth << " | " << _width << " | " << (float)_cache_hit / (float)_total << " |" << '\n';
+                        std::cout << "| " << _depth << " | " << _width << " | "
+                                  << (float)_cache_hit / (float)_total
+                                  << " |" << '\n';
                 }
         };
 

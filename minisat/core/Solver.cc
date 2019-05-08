@@ -102,7 +102,7 @@ Solver::Solver() :
   , conflict_budget    (-1)
   , propagation_budget (-1)
   , asynch_interrupt   (false)
-  , cache_sim          (Cache(100000, 10))
+  , cache_sim          (Cache(1000, 2))
 {}
 
 
