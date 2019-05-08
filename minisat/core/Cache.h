@@ -49,6 +49,8 @@ namespace Minisat {
 
                 ~Cache() {}
 
+                void set_depth(size_t size) { _depth = size; }
+
                 void submit(Var v)
                 {
                         _total++;

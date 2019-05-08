@@ -102,7 +102,10 @@ int main(int argc, char** argv)
 
         if (S.verbosity > 0){
             printf("|  Number of variables:  %12d                                         |\n", S.nVars());
+            printf("|  Cache depth:          %12d                                         |\n", S.nVars() / 10);
             printf("|  Number of clauses:    %12d                                         |\n", S.nClauses()); }
+
+        solver->cache_sim.set_depth(S.nVars() / 10);
         
         double parsed_time = cpuTime();
         if (S.verbosity > 0)

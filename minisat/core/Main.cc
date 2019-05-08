@@ -63,11 +63,10 @@ int main(int argc, char** argv)
         IntOption    cpu_lim("MAIN", "cpu-lim","Limit on CPU time allowed in seconds.\n", 0, IntRange(0, INT32_MAX));
         IntOption    mem_lim("MAIN", "mem-lim","Limit on memory usage in megabytes.\n", 0, IntRange(0, INT32_MAX));
         BoolOption   strictp("MAIN", "strict", "Validate DIMACS header during parsing.", false);
-        
+
         parseOptions(argc, argv, true);
 
         Solver S;
-        S.cache_sim = Cache(100, 2);
         double initial_time = cpuTime();
 
         S.verbosity = verb;
@@ -81,35 +80,38 @@ int main(int argc, char** argv)
         // Try to set resource limits:
         if (cpu_lim != 0) limitTime(cpu_lim);
         if (mem_lim != 0) limitMemory(mem_lim);
-        
+
         if (argc == 1)
             printf("Reading from standard input... Use '--help' for help.\n");
-        
+
         gzFile in = (argc == 1) ? gzdopen(0, "rb") : gzopen(argv[1], "rb");
         if (in == NULL)
             printf("ERROR! Could not open file: %s\n", argc == 1 ? "<stdin>" : argv[1]), exit(1);
-        
+
         if (S.verbosity > 0){
             printf("============================[ Problem Statistics ]=============================\n");
             printf("|                                                                             |\n"); }
-        
+
         parse_DIMACS(in, S, (bool)strictp);
         gzclose(in);
         FILE* res = (argc >= 3) ? fopen(argv[2], "wb") : NULL;
-        
+
         if (S.verbosity > 0){
             printf("|  Number of variables:  %12d                                         |\n", S.nVars());
+            printf("|  Depth:                %12d                                         |\n", S.nVars() / 10);
             printf("|  Number of clauses:    %12d                                         |\n", S.nClauses()); }
-        
+
+        S.cache_sim.depth = S.nVars() / 10;
+
         double parsed_time = cpuTime();
         if (S.verbosity > 0){
             printf("|  Parse time:           %12.2f s                                       |\n", parsed_time - initial_time);
             printf("|                                                                             |\n"); }
- 
+
         // Change to signal-handlers that will only notify the solver and allow it to terminate
         // voluntarily:
         sigTerm(SIGINT_interrupt);
-       
+
         if (!S.simplify()){
             if (res != NULL) fprintf(res, "UNSAT\n"), fclose(res);
             if (S.verbosity > 0){
@@ -121,7 +123,7 @@ int main(int argc, char** argv)
             solver->cache_sim.get_results();
             exit(20);
         }
-        
+
         vec<Lit> dummy;
         lbool ret = S.solveLimited(dummy);
         if (S.verbosity > 0){
@@ -141,7 +143,7 @@ int main(int argc, char** argv)
             fprintf(res, "INDET\n");
           fclose(res);
         }
-        
+
 #ifdef NDEBUG
         solver->cache_sim.get_results();
         exit(ret == l_True ? 10 : ret == l_False ? 20 : 0);     // (faster than "return", which will invoke the destructor for 'Solver')
