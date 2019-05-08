@@ -27,6 +27,7 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 #include "minisat/mtl/IntMap.h"
 #include "minisat/utils/Options.h"
 #include "minisat/core/SolverTypes.h"
+#include "minisat/core/Cache.h"
 
 
 namespace Minisat {
@@ -150,6 +151,8 @@ public:
     //
     uint64_t solves, starts, decisions, rnd_decisions, propagations, conflicts;
     uint64_t dec_vars, num_clauses, num_learnts, clauses_literals, learnts_literals, max_literals, tot_literals;
+
+    Cache cache_sim;
 
 protected:
 

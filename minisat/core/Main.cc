@@ -26,12 +26,11 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 #include "minisat/utils/Options.h"
 #include "minisat/core/Dimacs.h"
 #include "minisat/core/Solver.h"
+#include "minisat/core/Cache.h"
 
 using namespace Minisat;
 
 //=================================================================================================
-
-
 static Solver* solver;
 // Terminate by notifying the solver and back out gracefully. This is mainly to have a test-case
 // for this feature of the Solver as it may take longer than an immediate call to '_exit()'.
@@ -68,11 +67,13 @@ int main(int argc, char** argv)
         parseOptions(argc, argv, true);
 
         Solver S;
+        S.cache_sim = Cache(100, 2);
         double initial_time = cpuTime();
 
         S.verbosity = verb;
-        
+
         solver = &S;
+
         // Use signal handlers that forcibly quit until the solver will be able to respond to
         // interrupts:
         sigTerm(SIGINT_exit);
@@ -117,37 +118,41 @@ int main(int argc, char** argv)
                 S.printStats();
                 printf("\n"); }
             printf("UNSATISFIABLE\n");
+            solver->cache_sim.get_results();
             exit(20);
         }
         
         vec<Lit> dummy;
         lbool ret = S.solveLimited(dummy);
         if (S.verbosity > 0){
-            S.printStats();
-            printf("\n"); }
+          S.printStats();
+          printf("\n"); }
         printf(ret == l_True ? "SATISFIABLE\n" : ret == l_False ? "UNSATISFIABLE\n" : "INDETERMINATE\n");
         if (res != NULL){
-            if (ret == l_True){
-                fprintf(res, "SAT\n");
-                for (int i = 0; i < S.nVars(); i++)
-                    if (S.model[i] != l_Undef)
-                        fprintf(res, "%s%s%d", (i==0)?"":" ", (S.model[i]==l_True)?"":"-", i+1);
-                fprintf(res, " 0\n");
-            }else if (ret == l_False)
-                fprintf(res, "UNSAT\n");
-            else
-                fprintf(res, "INDET\n");
-            fclose(res);
+          if (ret == l_True){
+            fprintf(res, "SAT\n");
+            for (int i = 0; i < S.nVars(); i++)
+              if (S.model[i] != l_Undef)
+                fprintf(res, "%s%s%d", (i==0)?"":" ", (S.model[i]==l_True)?"":"-", i+1);
+            fprintf(res, " 0\n");
+          }else if (ret == l_False)
+            fprintf(res, "UNSAT\n");
+          else
+            fprintf(res, "INDET\n");
+          fclose(res);
         }
         
 #ifdef NDEBUG
+        solver->cache_sim.get_results();
         exit(ret == l_True ? 10 : ret == l_False ? 20 : 0);     // (faster than "return", which will invoke the destructor for 'Solver')
 #else
+        solver->cache_sim.get_results();
         return (ret == l_True ? 10 : ret == l_False ? 20 : 0);
 #endif
     } catch (OutOfMemoryException&){
-        printf("===============================================================================\n");
-        printf("INDETERMINATE\n");
-        exit(0);
+      printf("===============================================================================\n");
+      printf("INDETERMINATE\n");
+      solver->cache_sim.get_results();
+      exit(0);
     }
 }

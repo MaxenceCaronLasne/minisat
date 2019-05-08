@@ -126,6 +126,7 @@ int main(int argc, char** argv)
                 S.printStats();
                 printf("\n"); }
             printf("UNSATISFIABLE\n");
+            solver->cache_sim.get_results();
             exit(20);
         }
 
@@ -159,6 +160,7 @@ int main(int argc, char** argv)
         }
 
 #ifdef NDEBUG
+        solver->cache_sim.get_results();
         exit(ret == l_True ? 10 : ret == l_False ? 20 : 0);     // (faster than "return", which will invoke the destructor for 'Solver')
 #else
         return (ret == l_True ? 10 : ret == l_False ? 20 : 0);
