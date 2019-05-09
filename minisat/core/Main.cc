@@ -101,7 +101,7 @@ int main(int argc, char** argv)
             printf("|  Depth:                %12d                                         |\n", S.nVars() / 10);
             printf("|  Number of clauses:    %12d                                         |\n", S.nClauses()); }
 
-        S.cache_sim.depth = S.nVars() / 10;
+        S.cache_sim.set_depth(S.nVars() / 10);
 
         double parsed_time = cpuTime();
         if (S.verbosity > 0){
