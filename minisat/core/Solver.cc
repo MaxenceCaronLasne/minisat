@@ -105,9 +105,9 @@ Solver::Solver() :
   , cache_sim          (Cache(1000, 2))
 {}
 
-
 Solver::~Solver()
 {
+    this->cache_sim.get_results();
 }
 
 
