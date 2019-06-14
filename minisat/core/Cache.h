@@ -45,7 +45,8 @@ namespace Minisat {
                         _set(std::set<Var>()),
                         _depth(depth),
                         _width(width),
-                        _cache_hit(0) {}
+                        _cache_hit(0),
+	       		_total(0) {}
 
                 ~Cache() {}
 
@@ -65,9 +66,13 @@ namespace Minisat {
 
                 void get_results()
                 {
+			float cache_hit_average = 0.0;
+			if (_total)
+				cache_hit_average = (float)_cache_hit / (float)_total;
+
                         std::cout << "| " << _depth << " | " << _width << " | "
-                                  << (float)_cache_hit / (float)_total
-                                  << " |" << '\n';
+                                  << cache_hit_average
+                                  << " | " << _total << " |" << '\n';
                 }
         };
 
